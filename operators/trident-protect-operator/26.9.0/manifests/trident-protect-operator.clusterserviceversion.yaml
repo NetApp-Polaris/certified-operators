@@ -679,7 +679,8 @@ spec:
   - name: Trident Protect documentation
     url: https://docs.netapp.com/us-en/trident/trident-protect/learn-about-trident-protect.html
   maintainers:
-  - name: NetApp
+  - email: ng-trident-openshift-operator@netapp.com
+    name: NetApp
   maturity: alpha
   minKubeVersion: 1.31.0
   provider:
