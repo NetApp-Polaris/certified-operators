@@ -1,0 +1,711 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "protect.trident.netapp.io/v1",
+          "kind": "TridentProtect",
+          "metadata": {
+            "labels": {
+              "app.kubernetes.io/name": "trident-protect"
+            },
+            "name": "tridentprotect-sample",
+            "namespace": "trident-protect"
+          },
+          "spec": {
+            "autoSupport": {
+              "enabled": false,
+              "url": "https://support.netapp.com/put/AsupPut"
+            },
+            "connector": {
+              "enabled": false
+            },
+            "crCleanup": {
+              "enabled": false,
+              "timeout": 600
+            },
+            "logLevel": "info",
+            "namePrefix": "trident-protect",
+            "preUpgrade": {
+              "enabled": false
+            },
+            "webhook": {
+              "serviceName": "tp-webhook-service",
+              "tlsSecretName": "tp-webhook-tls"
+            }
+          }
+        }
+      ]
+    capabilities: Full Lifecycle
+    categories: Storage
+    createdAt: "2026-10-07T15:49:48Z"
+    description: Install and manage NetApp Trident Protect.
+    features.operators.openshift.io/disconnected: "false"
+    features.operators.openshift.io/fips-compliant: "false"
+    features.operators.openshift.io/proxy-aware: "false"
+    features.operators.openshift.io/tls-profiles: "false"
+    features.operators.openshift.io/token-auth-aws: "false"
+    features.operators.openshift.io/token-auth-azure: "false"
+    features.operators.openshift.io/token-auth-gcp: "false"
+    operators.operatorframework.io/builder: operator-sdk-v1.42.3
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
+    support: NetApp
+  name: trident-protect-operator.v26.9.0
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: TridentProtect is the Schema for the tridentprotects API.
+      displayName: Trident Protect
+      kind: TridentProtect
+      name: tridentprotects.protect.trident.netapp.io
+      specDescriptors:
+      - description: |-
+          ClusterName is recorded as the cluster-name label on backups and snapshots stored in an AppVault.
+          When the connector is enabled, it is also the cluster name in NetApp Console, and is required unless an existing cluster ID is set.
+        displayName: Cluster name
+        path: clusterName
+      - description: Connector deploys the Trident Protect Connector and registers
+          this cluster with NetApp Console.
+        displayName: Connector
+        path: connector
+      - description: Enabled controls whether the Trident Protect Connector is deployed.
+        displayName: Enable connector
+        path: connector.enabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Registration is the NetApp Console account, proxy, and optional
+          existing cluster record. Required when the connector is enabled.
+        displayName: NetApp Console registration
+        path: connector.registration
+      - description: AccountID is the NetApp Console account that owns this cluster.
+        displayName: Account ID
+        path: connector.registration.accountID
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - description: ClusterID is the existing TPO cluster record ID. When set, cluster
+          name is optional and the connector updates that record instead of creating
+          one.
+        displayName: Cluster ID
+        path: connector.registration.clusterID
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - description: ProxyHostIP is the base URL or IP address of the TP proxy.
+        displayName: Proxy URL
+        path: connector.registration.proxyHostIP
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - description: ProxySecretName references an existing Secret containing the
+          NetApp Console client_id and client_secret.
+        displayName: Proxy credentials
+        path: connector.registration.proxySecretName
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - description: AgentID identifies an existing NetApp Console connector. Optional.
+        displayName: Agent ID
+        path: connector.registration.agentID
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - description: |-
+          Image configures the connector image. Registry defaults to imageRegistry,
+          repository defaults to trident-protect-connector, and tag defaults to the
+          connector release built into the operator.
+        displayName: Connector image
+        path: connector.image
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - description: ImagePullSecrets lists Secrets used to pull the connector image.
+        displayName: Connector image pull secrets
+        path: connector.imagePullSecrets
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - displayName: Connector resources
+        path: connector.resources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - displayName: Connector security context
+        path: connector.securityContext
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - description: LogLevel controls connector logging verbosity.
+        displayName: Connector log level
+        path: connector.logLevel
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:select:debug
+        - urn:alm:descriptor:com.tectonic.ui:select:info
+        - urn:alm:descriptor:com.tectonic.ui:select:warn
+        - urn:alm:descriptor:com.tectonic.ui:select:error
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - description: SkipRegister deploys the connector without registering the cluster.
+          The cluster stays disconnected in NetApp Console.
+        displayName: Skip cluster registration
+        path: connector.skipRegister
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - displayName: Skip TLS validation
+        path: connector.skipTLSValidation
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:fieldDependency:connector.enabled:true
+      - displayName: AutoSupport
+        path: autoSupport
+      - displayName: Enable AutoSupport
+        path: autoSupport.enabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - displayName: Insecure AutoSupport
+        path: autoSupport.insecure
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - displayName: AutoSupport proxy
+        path: autoSupport.proxy
+      - displayName: AutoSupport URL
+        path: autoSupport.url
+      - displayName: AutoSupport image
+        path: autoSupport.image
+      - displayName: Enabled
+        path: crCleanup.enabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - displayName: Enabled
+        path: preUpgrade.enabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - displayName: Enabled
+        path: webhooksCleanup.enabled
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+      - description: Timeout is the number of seconds to wait for the job to complete.
+        displayName: Timeout
+        path: crCleanup.timeout
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - description: Timeout is the number of seconds to wait for the job to complete.
+        displayName: Timeout
+        path: preUpgrade.timeout
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - description: Timeout is the number of seconds to wait for the job to complete.
+        displayName: Timeout
+        path: webhooksCleanup.timeout
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:number
+      - displayName: Image pull secrets
+        path: crCleanup.imagePullSecrets
+      - displayName: Image pull secrets
+        path: preUpgrade.imagePullSecrets
+      - displayName: Image pull secrets
+        path: webhooksCleanup.imagePullSecrets
+      - displayName: Pod security context
+        path: crCleanup.podSecurityContext
+      - displayName: Pod security context
+        path: preUpgrade.podSecurityContext
+      - displayName: Pod security context
+        path: webhooksCleanup.podSecurityContext
+      - displayName: Node selector
+        path: crCleanup.nodeSelector
+      - displayName: Node selector
+        path: preUpgrade.nodeSelector
+      - displayName: Node selector
+        path: webhooksCleanup.nodeSelector
+      - displayName: Tolerations
+        path: crCleanup.tolerations
+      - displayName: Tolerations
+        path: preUpgrade.tolerations
+      - displayName: Tolerations
+        path: webhooksCleanup.tolerations
+      - displayName: Pod anti-affinity
+        path: crCleanup.podAntiAffinity
+      - displayName: Pod anti-affinity
+        path: preUpgrade.podAntiAffinity
+      - displayName: Pod anti-affinity
+        path: webhooksCleanup.podAntiAffinity
+      - displayName: Pod affinity
+        path: crCleanup.podAffinity
+      - displayName: Pod affinity
+        path: preUpgrade.podAffinity
+      - displayName: Pod affinity
+        path: webhooksCleanup.podAffinity
+      - displayName: Node affinity
+        path: crCleanup.nodeAffinity
+      - displayName: Node affinity
+        path: preUpgrade.nodeAffinity
+      - displayName: Node affinity
+        path: webhooksCleanup.nodeAffinity
+      - displayName: Pod labels
+        path: crCleanup.podLabels
+      - displayName: Pod labels
+        path: preUpgrade.podLabels
+      - displayName: Pod labels
+        path: webhooksCleanup.podLabels
+      - displayName: Pod annotations
+        path: crCleanup.podAnnotations
+      - displayName: Pod annotations
+        path: preUpgrade.podAnnotations
+      - displayName: Pod annotations
+        path: webhooksCleanup.podAnnotations
+      - displayName: Security context
+        path: crCleanup.securityContext
+      - displayName: Security context
+        path: preUpgrade.securityContext
+      - displayName: Security context
+        path: webhooksCleanup.securityContext
+      - description: LogLevel controls controller and job logging verbosity.
+        displayName: Log level
+        path: logLevel
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:select:debug
+        - urn:alm:descriptor:com.tectonic.ui:select:info
+        - urn:alm:descriptor:com.tectonic.ui:select:warn
+        - urn:alm:descriptor:com.tectonic.ui:select:error
+      - displayName: ONTAP snapshots through TP proxy
+        path: ontapSnapshotsViaTPProxy
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Skip unsupported PVCs
+        path: skipUnsupportedPVC
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Split temporary PVC on clone
+        path: tempPVCSplitOnClone
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Use OpenShift service CA
+        path: useOpenshiftServiceCA
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Skip all namespace annotations on restore
+        path: restoreSkipAllNamespaceAnnotations
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Skip all namespace labels on restore
+        path: restoreSkipAllNamespaceLabels
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: ImageRegistry is the registry for operand images when a per-image
+          registry is not set.
+        displayName: Image registry
+        path: imageRegistry
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: |-
+          RestorePVCOwnerRefs controls PVC ownerReference restoration: always, auto, or never.
+          auto restores an ownerReference only when its owner exists.
+        displayName: Restore PVC owner references
+        path: restorePVCOwnerRefs
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:select:always
+        - urn:alm:descriptor:com.tectonic.ui:select:auto
+        - urn:alm:descriptor:com.tectonic.ui:select:never
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: CRCleanup removes Trident Protect custom resources during uninstall.
+        displayName: Custom resource cleanup
+        path: crCleanup
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: PreUpgrade runs the pre-upgrade job before applying a new controller
+          version.
+        displayName: Pre-upgrade
+        path: preUpgrade
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Webhook cleanup
+        path: webhooksCleanup
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: TridentNamespace is the namespace where Trident is installed.
+          Discovered from TridentVersion when empty.
+        displayName: Trident namespace
+        path: tridentNamespace
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: Controller configures the controller image, resources, security
+          context, and metrics TLS.
+        displayName: Controller
+        path: controller
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: GuestFS is the FileBrowse image. It defaults to trident-protect-guestfs
+          at the tag built into the operator.
+        displayName: GuestFS image
+        path: guestfs
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Utils image
+        path: utils
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Image pull secrets
+        path: imagePullSecrets
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: NamePrefix is the prefix used for operand resource names. Defaults
+          to trident-protect.
+        displayName: Name prefix
+        path: namePrefix
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - description: NameOverride sets the app.kubernetes.io/name label on created
+          resources. It defaults to trident-protect and does not change resource names.
+          Use namePrefix to change those names.
+        displayName: Name override
+        path: nameOverride
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Virtual machines
+        path: vm
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Extra environment variables
+        path: envVars
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Custom labels
+        path: customLabels
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Node selector
+        path: nodeSelector
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: CA certificate ConfigMap
+        path: caCertConfigMap
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: RBAC
+        path: rbac
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Job resources
+        path: jobResources
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Security context constraints
+        path: scc
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Webhook
+        path: webhook
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Namespace annotations to skip on restore
+        path: restoreSkipNamespaceAnnotations
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Namespace labels to skip on restore
+        path: restoreSkipNamespaceLabels
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Namespace annotations to force on restore
+        path: restoreForceNamespaceAnnotations
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Controller metrics TLS secret
+        path: controller.metrics.tlsSecretName
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Freeze virtual machines
+        path: vm.freeze
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:booleanSwitch
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: CA certificate ConfigMap name
+        path: caCertConfigMap.name
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:ConfigMap
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      - displayName: Webhook TLS secret
+        path: webhook.tlsSecretName
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+        - urn:alm:descriptor:com.tectonic.ui:advanced
+      version: v1
+  description: |
+    Trident Protect Operator installs and manages NetApp Trident Protect without
+    embedding Helm. A TridentProtect custom resource defines the operand images,
+    feature configuration, RBAC mode, webhook configuration, job resources, and
+    uninstall behavior.
+
+    The operator enforces one TridentProtect instance per cluster and supports
+    lifecycle cleanup of the operand resources and Trident Protect CRDs.
+  displayName: Trident Protect Operator
+  relatedImages:
+  - name: trident-protect-operator
+    image: docker.repo.eng.netapp.com/akarlis/neptune/trident-protect-operator@sha256:d7129297148ea34ab29ed1ce457f10205aac8d1db92ff02807dfd5966852381f
+  - name: trident-protect-controller
+    image: docker.io/netapp/controller@sha256:46a0066e1cf6940e9c046f1c3c940c39ddeb422c442a989e173cc0e0bec85189
+  - name: trident-protect-utils
+    image: docker.repo.eng.netapp.com/globalcicd/astra/trident-protect/trident-protect-utils@sha256:cea6607547a8e32b1dce38b5a084daf9f8f9ed02939e8818ae83b07077b1c8d2
+  - name: trident-protect-guestfs
+    image: docker.repo.eng.netapp.com/globalcicd/astra/trident-protect/trident-protect-guestfs@sha256:20b563ea2948ca180254cf91277761118f4bce992fbb03b4877461d1568ece01
+  - name: trident-protect-connector
+    image: docker.io/netapp/trident-protect-connector@sha256:a982458a70f76d4219c70bc71d91c2eae032b105e9d8aa863de8f086e9228892
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          - secrets
+          - serviceaccounts
+          - services
+          verbs:
+          - '*'
+        - apiGroups:
+          - admissionregistration.k8s.io
+          resources:
+          - validatingwebhookconfigurations
+          verbs:
+          - '*'
+        - apiGroups:
+          - apiextensions.k8s.io
+          resources:
+          - customresourcedefinitions
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          verbs:
+          - '*'
+        - apiGroups:
+          - batch
+          resources:
+          - jobs
+          verbs:
+          - '*'
+        - apiGroups:
+          - protect.trident.netapp.io
+          resources:
+          - tridentprotects
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - protect.trident.netapp.io
+          resources:
+          - tridentprotects/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - protect.trident.netapp.io
+          resources:
+          - tridentprotects/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterrolebindings
+          - clusterroles
+          - rolebindings
+          - roles
+          verbs:
+          - '*'
+        - apiGroups:
+          - security.openshift.io
+          resources:
+          - securitycontextconstraints
+          verbs:
+          - '*'
+        - apiGroups:
+          - trident.netapp.io
+          resources:
+          - tridentversions
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: operator-controller-manager
+      deployments:
+      - label:
+          app.kubernetes.io/managed-by: kustomize
+          app.kubernetes.io/name: operator
+          control-plane: trident-protect-operator
+        name: operator-controller-manager
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: operator
+              control-plane: trident-protect-operator
+          strategy: {}
+          template:
+            metadata:
+              annotations:
+                kubectl.kubernetes.io/default-container: manager
+              labels:
+                app.kubernetes.io/name: operator
+                control-plane: trident-protect-operator
+            spec:
+              containers:
+              - args:
+                - --metrics-bind-address=:8443
+                - --leader-elect
+                - --health-probe-bind-address=:8081
+                command:
+                - /manager
+                env:
+                - name: ENABLE_WEBHOOKS
+                  value: "true"
+                - name: DEFAULT_TRIDENT_PROTECT_CONTROLLER_IMAGE
+                  value: docker.io/netapp/controller@sha256:46a0066e1cf6940e9c046f1c3c940c39ddeb422c442a989e173cc0e0bec85189
+                - name: DEFAULT_TRIDENT_PROTECT_UTILS_IMAGE
+                  value: docker.repo.eng.netapp.com/globalcicd/astra/trident-protect/trident-protect-utils@sha256:cea6607547a8e32b1dce38b5a084daf9f8f9ed02939e8818ae83b07077b1c8d2
+                - name: DEFAULT_TRIDENT_PROTECT_GUESTFS_IMAGE
+                  value: docker.repo.eng.netapp.com/globalcicd/astra/trident-protect/trident-protect-guestfs@sha256:20b563ea2948ca180254cf91277761118f4bce992fbb03b4877461d1568ece01
+                - name: DEFAULT_TRIDENT_PROTECT_CONNECTOR_IMAGE
+                  value: docker.io/netapp/trident-protect-connector@sha256:a982458a70f76d4219c70bc71d91c2eae032b105e9d8aa863de8f086e9228892
+                image: docker.repo.eng.netapp.com/akarlis/neptune/trident-protect-operator@sha256:d7129297148ea34ab29ed1ce457f10205aac8d1db92ff02807dfd5966852381f
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 8081
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+                name: manager
+                ports:
+                - containerPort: 9443
+                  name: webhook-server
+                  protocol: TCP
+                readinessProbe:
+                  httpGet:
+                    path: /readyz
+                    port: 8081
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 128Mi
+                  requests:
+                    cpu: 10m
+                    memory: 64Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+              securityContext:
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
+              serviceAccountName: operator-controller-manager
+              terminationGracePeriodSeconds: 10
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - coordination.k8s.io
+          resources:
+          - leases
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        serviceAccountName: operator-controller-manager
+    strategy: deployment
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - backup
+  - restore
+  - snapshot
+  - storage
+  - trident
+  links:
+  - name: Trident Protect documentation
+    url: https://docs.netapp.com/us-en/trident/trident-protect/learn-about-trident-protect.html
+  maintainers:
+  - name: NetApp
+  maturity: alpha
+  minKubeVersion: 1.31.0
+  provider:
+    name: NetApp
+    url: https://www.netapp.com/
+  version: 26.9.0
+  webhookdefinitions:
+  - admissionReviewVersions:
+    - v1
+    containerPort: 443
+    deploymentName: operator-controller-manager
+    failurePolicy: Fail
+    generateName: vtridentprotect-v1.kb.io
+    matchPolicy: Equivalent
+    rules:
+    - apiGroups:
+      - protect.trident.netapp.io
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      resources:
+      - tridentprotects
+      scope: Namespaced
+    sideEffects: None
+    targetPort: 9443
+    timeoutSeconds: 10
+    type: ValidatingAdmissionWebhook
+    webhookPath: /validate-protect-trident-netapp-io-v1-tridentprotect

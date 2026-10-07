@@ -1,0 +1,4 @@
+---
+# Local pipeline test only. Replace with the Partner Connect bundle component
+# ID before submitting to Red Hat.
+cert_project_id: "000000000000000000000000"
