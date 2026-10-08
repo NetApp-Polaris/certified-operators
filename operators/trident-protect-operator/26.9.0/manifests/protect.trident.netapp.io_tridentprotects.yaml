@@ -3891,12 +3891,18 @@ spec:
                       create:
                         type: boolean
                       name:
+                        description: |-
+                          Name is the FileBrowse SCC. It must stay trident-protect-filebrowse while
+                          Create is true; set Create to false to name an existing SCC instead.
                         type: string
                       priority:
                         format: int32
                         type: integer
                     type: object
                   name:
+                    description: |-
+                      Name is the SCC the job pods run under. It must stay trident-protect-job while
+                      Create is true; set Create to false to name an existing SCC instead.
                     type: string
                   priority:
                     format: int32
